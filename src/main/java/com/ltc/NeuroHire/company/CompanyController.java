@@ -34,6 +34,18 @@ public class CompanyController {
         return ApiResponse.ok(service.get(id));
     }
 
+    @Operation(summary = "Public list of companies (no auth)")
+    @GetMapping("/public")
+    public ApiResponse<List<CompanyDto.Response>> publicList() {
+        return ApiResponse.ok(service.list());
+    }
+
+    @Operation(summary = "Public company profile (no auth)")
+    @GetMapping("/public/{id}")
+    public ApiResponse<CompanyDto.Response> publicGet(@PathVariable Long id) {
+        return ApiResponse.ok(service.get(id));
+    }
+
     @Operation(summary = "List companies")
     @PreAuthorize("hasAnyRole('ADMIN','HR','RECRUITER_AGENCY')")
     @GetMapping

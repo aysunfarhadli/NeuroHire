@@ -47,3 +47,44 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// ---------------------------------------------------------------------------
+// Frontend (Vite + React) build integration
+// ---------------------------------------------------------------------------
+def frontendDir   = file("$projectDir/frontend")
+def frontendDist  = file("$projectDir/src/main/resources/static")
+def npmCmd        = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'npm.cmd' : 'npm'
+
+tasks.register('frontendInstall', Exec) {
+	description = 'Install frontend npm dependencies'
+	group       = 'frontend'
+	workingDir  = frontendDir
+	commandLine npmCmd, 'install', '--no-fund', '--no-audit'
+	inputs.file file("$frontendDir/package.json")
+	outputs.dir file("$frontendDir/node_modules")
+	onlyIf { frontendDir.exists() }
+}
+
+tasks.register('frontendBuild', Exec) {
+	description = 'Build the React frontend into src/main/resources/static'
+	group       = 'frontend'
+	dependsOn   'frontendInstall'
+	workingDir  = frontendDir
+	commandLine npmCmd, 'run', 'build'
+	inputs.dir   file("$frontendDir/src")
+	inputs.file  file("$frontendDir/index.html")
+	inputs.file  file("$frontendDir/vite.config.ts")
+	inputs.file  file("$frontendDir/tailwind.config.js")
+	outputs.dir  frontendDist
+	onlyIf { frontendDir.exists() }
+}
+
+tasks.named('processResources') {
+	dependsOn 'frontendBuild'
+}
+
+tasks.register('frontendClean', Delete) {
+	description = 'Clean frontend build output'
+	group       = 'frontend'
+	delete frontendDist
+}

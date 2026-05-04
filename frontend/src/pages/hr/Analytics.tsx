@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from '@/components/ui';
 import { listJobs } from '@/api/jobs';
 import type { JobPost } from '@/types/api';
 
 export default function Analytics() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobPost[] | null>(null);
 
   useEffect(() => { listJobs().then(setJobs).catch(() => setJobs([])); }, []);
@@ -23,18 +25,18 @@ export default function Analytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Analytics</h1>
-        <p className="text-sm text-subtle mt-1">A quick read on your hiring pipeline health.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('hrAnalytics.title')}</h1>
+        <p className="text-sm text-subtle mt-1">{t('hrAnalytics.sub')}</p>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4">
-        <StatTile label="Total jobs" value={jobs.length} accent="brand" />
-        <StatTile label="Open positions" value={open} accent="green" />
-        <StatTile label="Closed / draft" value={jobs.length - open} accent="amber" />
+        <StatTile label={t('hrAnalytics.totalJobs')} value={jobs.length} accent="brand" />
+        <StatTile label={t('hrAnalytics.openPositions')} value={open} accent="green" />
+        <StatTile label={t('hrAnalytics.closedDraft')} value={jobs.length - open} accent="amber" />
       </div>
 
       <Card>
-        <CardHeader title="Jobs by seniority" subtitle="Distribution across your postings" />
+        <CardHeader title={t('hrAnalytics.bySeniorityTitle')} subtitle={t('hrAnalytics.bySenioritySub')} />
         <CardBody className="space-y-3">
           {Object.entries(senCounts).map(([k, v]) => (
             <div key={k}>
@@ -48,7 +50,7 @@ export default function Analytics() {
             </div>
           ))}
           {Object.keys(senCounts).length === 0 && (
-            <div className="text-sm text-subtle text-center py-4">No data yet — create some jobs first.</div>
+            <div className="text-sm text-subtle text-center py-4">{t('hrAnalytics.noDataYet')}</div>
           )}
         </CardBody>
       </Card>

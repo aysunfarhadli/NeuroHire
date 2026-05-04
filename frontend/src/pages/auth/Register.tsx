@@ -1,14 +1,17 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button, Input, Select, Toast } from '@/components/ui';
 import BrandMark from '@/components/BrandMark';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useAuth } from '@/store/auth';
 import { useTheme } from '@/store/theme';
 import { apiErrorMessage } from '@/api/client';
 import type { Role } from '@/types/api';
 
 export default function Register() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const { theme, toggle } = useTheme();
   const nav = useNavigate();
@@ -24,8 +27,9 @@ export default function Register() {
     e.preventDefault();
     setLoading(true); setError(null);
     try {
-      await register({ fullName, email, password, role, companyId: companyId ? Number(companyId) : null });
-      nav('/app');
+      const u = await register({ fullName, email, password, role, companyId: companyId ? Number(companyId) : null });
+      if (u.role === 'SUPER_ADMIN') nav('/superadmin');
+      else nav('/app');
     } catch (err) { setError(apiErrorMessage(err)); }
     finally { setLoading(false); }
   }
@@ -42,9 +46,9 @@ export default function Register() {
             <span className="font-semibold text-lg">HireMind <span className="gradient-text">AI</span></span>
           </Link>
           <h2 className="text-3xl font-semibold tracking-tight leading-tight">
-            Get matched in <span className="gradient-text">minutes</span>, not months.
+            {t('auth.leftTagline1Register')} <span className="gradient-text">{t('auth.leftTagline2Register')}</span>{t('auth.leftTagline3Register')}
           </h2>
-          <p className="mt-4 text-subtle">Pick a role above — Candidate or HR — and start using HireMind right away.</p>
+          <p className="mt-4 text-subtle">{t('auth.leftSubRegister')}</p>
         </div>
       </div>
 
@@ -55,35 +59,38 @@ export default function Register() {
               <BrandMark size={28} />
               <span className="font-semibold">HireMind <span className="gradient-text">AI</span></span>
             </Link>
-            <button onClick={toggle}
-              className="ml-auto h-9 w-9 rounded-lg flex items-center justify-center text-subtle hover:text-fg hover:bg-fg/[0.06]"
-              aria-label="Toggle theme">
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+            <div className="ml-auto flex items-center gap-1.5">
+              <LanguageSwitcher />
+              <button onClick={toggle}
+                className="h-9 w-9 rounded-lg flex items-center justify-center text-subtle hover:text-fg hover:bg-fg/[0.06]"
+                aria-label="Toggle theme">
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-          <p className="mt-1 text-sm text-subtle">Free to start. No credit card.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('auth.registerTitle')}</h1>
+          <p className="mt-1 text-sm text-subtle">{t('auth.registerSub')}</p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
-            <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} />
-            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <Input label="Password (8+ chars)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-            <Select label="I am a..." value={role} onChange={(e) => setRole(e.target.value as Role)}>
-              <option value="CANDIDATE">Candidate</option>
-              <option value="HR">HR Manager</option>
-              <option value="HIRING_MANAGER">Hiring Manager</option>
-              <option value="RECRUITER_AGENCY">Recruiter Agency</option>
+            <Input label={t('auth.fullName')} value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} />
+            <Input label={t('auth.email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input label={t('auth.passwordMin')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+            <Select label={t('auth.iAmA')} value={role} onChange={(e) => setRole(e.target.value as Role)}>
+              <option value="CANDIDATE">{t('auth.candidate')}</option>
+              <option value="HR">{t('auth.hr')}</option>
+              <option value="HIRING_MANAGER">{t('auth.hiringManager')}</option>
+              <option value="RECRUITER_AGENCY">{t('auth.recruiterAgency')}</option>
             </Select>
             {needsCompany && (
-              <Input label="Company ID" type="number" value={companyId} onChange={(e) => setCompanyId(e.target.value)} hint="Use 1 for the seeded demo company" />
+              <Input label={t('auth.companyId')} type="number" value={companyId} onChange={(e) => setCompanyId(e.target.value)} hint={t('auth.companyHint') ?? ''} />
             )}
             {error && <Toast kind="error">{error}</Toast>}
             <Button type="submit" loading={loading} className="w-full" iconRight={<ArrowRight className="h-4 w-4" />}>
-              Create account
+              {t('auth.createAccountBtn')}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-subtle">
-            Already have one? <Link to="/login" className="text-brand-600 dark:text-brand-400 font-medium">Sign in</Link>
+            {t('auth.haveAccount')} <Link to="/login" className="text-brand-600 dark:text-brand-400 font-medium">{t('auth.haveAccountCta')}</Link>
           </div>
         </div>
       </div>

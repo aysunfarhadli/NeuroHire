@@ -1,14 +1,18 @@
 package com.ltc.NeuroHire.auth;
 
 import com.ltc.NeuroHire.auth.dto.AuthDto;
+import com.ltc.NeuroHire.common.event.HireMindEvent;
 import com.ltc.NeuroHire.common.exception.ApiException;
 import com.ltc.NeuroHire.security.JwtProperties;
 import com.ltc.NeuroHire.security.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
+    private final ApplicationEventPublisher events;
 
     public AuthDto.AuthResponse register(AuthDto.RegisterRequest req) {
         if (userRepository.existsByEmailIgnoreCase(req.email())) {
@@ -33,6 +38,12 @@ public class AuthService {
                 .enabled(true)
                 .build();
         user = userRepository.save(user);
+        events.publishEvent(HireMindEvent.of(HireMindEvent.USER_REGISTERED, Map.of(
+                "userId", user.getId(),
+                "email", user.getEmail(),
+                "role", user.getRole().name(),
+                "companyId", user.getCompanyId() == null ? "" : user.getCompanyId()
+        )));
         return tokens(user);
     }
 

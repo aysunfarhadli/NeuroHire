@@ -1,17 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FileText, Trash2, Upload } from 'lucide-react';
-import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Skeleton, Toast } from '@/components/ui';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FileText, Trash2, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Badge, Card, CardBody, CardHeader, EmptyState, Skeleton, Toast } from '@/components/ui';
+import CvDropZone from '@/components/CvDropZone';
 import { deleteCv, myCvs, uploadCv } from '@/api/cv';
 import type { CvSummary } from '@/types/api';
 import { formatBytes, relativeTime } from '@/lib/format';
 import { apiErrorMessage } from '@/api/client';
 
 export default function CvList() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [cvs, setCvs] = useState<CvSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     try { setCvs(await myCvs()); } catch (e) { setError(apiErrorMessage(e)); }
@@ -19,47 +21,57 @@ export default function CvList() {
 
   useEffect(() => { load(); }, []);
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
+  async function onFile(file: File, onProgress: (p: number) => void) {
     setError(null);
     try {
-      await uploadCv(file);
-      if (fileRef.current) fileRef.current.value = '';
+      const created = await uploadCv(file, onProgress);
+      // refresh list once + poll twice for async parsing completion
       await load();
-      // re-poll to catch parsing completion
       setTimeout(load, 1500);
       setTimeout(load, 4000);
+      // navigate to new CV detail so analysis can run
+      setTimeout(() => navigate(`/app/cv/${created.id}`), 1200);
     } catch (err) {
       setError(apiErrorMessage(err));
-    } finally {
-      setUploading(false);
+      throw err;
     }
   }
 
   async function onDelete(id: number) {
-    if (!confirm('Delete this CV?')) return;
+    if (!confirm(t('cv.deleteConfirm'))) return;
     try { await deleteCv(id); await load(); } catch (e) { setError(apiErrorMessage(e)); }
+  }
+
+  function statusTone(s: CvSummary['parsingStatus']) {
+    switch (s) {
+      case 'DONE': return 'green' as const;
+      case 'PROCESSING': return 'blue' as const;
+      case 'PENDING': return 'amber' as const;
+      case 'FAILED': return 'red' as const;
+    }
+  }
+  function statusLabel(s: CvSummary['parsingStatus']) {
+    switch (s) {
+      case 'DONE': return t('cv.parsed');
+      case 'PROCESSING': return t('cv.processing');
+      case 'PENDING': return t('cv.pending');
+      case 'FAILED': return t('cv.failed');
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">My CVs</h1>
-          <p className="text-sm text-subtle mt-1">Upload PDF or DOCX. Parsing and AI analysis happen automatically.</p>
-        </div>
-        <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.txt,application/pdf" className="hidden" onChange={onPick} />
-        <Button onClick={() => fileRef.current?.click()} loading={uploading} iconLeft={<Upload className="h-4 w-4" />}>
-          {uploading ? 'Uploading...' : 'Upload CV'}
-        </Button>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('cv.pageTitle')}</h1>
+        <p className="text-sm text-subtle mt-1">{t('cv.pageSub')}</p>
       </div>
 
       {error && <Toast kind="error">{error}</Toast>}
 
+      <CvDropZone onFile={onFile} />
+
       <Card>
-        <CardHeader title="All CVs" subtitle="Most recent first" />
+        <CardHeader title={t('cv.allCvs')} subtitle={t('cv.mostRecent')} />
         <CardBody className="p-0">
           {cvs === null ? (
             <div className="p-5 space-y-3">
@@ -68,14 +80,13 @@ export default function CvList() {
           ) : cvs.length === 0 ? (
             <EmptyState
               icon={<FileText className="h-6 w-6" />}
-              title="No CVs yet"
-              description="Upload your first CV to receive AI analysis, missing-skills suggestions, and rewrite recommendations."
-              action={<Button onClick={() => fileRef.current?.click()} iconLeft={<Upload className="h-4 w-4" />}>Upload CV</Button>}
+              title={t('cv.noCvsTitle')}
+              description={t('cv.noCvsBody')}
             />
           ) : (
             <ul className="divide-y divide-border">
               {cvs.map((cv) => (
-                <li key={cv.id} className="flex items-center justify-between px-5 py-3.5">
+                <li key={cv.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-fg/[0.02] transition-colors">
                   <Link to={`/app/cv/${cv.id}`} className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-10 w-10 rounded-lg bg-fg/[0.06] flex items-center justify-center shrink-0">
                       <FileText className="h-4 w-4" />
@@ -87,11 +98,17 @@ export default function CvList() {
                     </div>
                   </Link>
                   <div className="flex items-center gap-3">
-                    {cv.parsingStatus === 'DONE' && <Badge tone="green">Parsed</Badge>}
-                    {cv.parsingStatus === 'PROCESSING' && <Badge tone="blue">Processing</Badge>}
-                    {cv.parsingStatus === 'PENDING' && <Badge tone="amber">Pending</Badge>}
-                    {cv.parsingStatus === 'FAILED' && <Badge tone="red">Failed</Badge>}
-                    <button onClick={() => onDelete(cv.id)} className="h-8 w-8 rounded-md hover:bg-red-500/10 text-subtle hover:text-red-500 flex items-center justify-center" aria-label="Delete">
+                    {cv.parsingStatus === 'DONE' && (
+                      <Link to={`/app/cv/${cv.id}`} className="inline-flex items-center gap-1 text-xs text-brand-600 dark:text-brand-300 hover:underline">
+                        <Sparkles className="h-3 w-3" /> {t('cv.analysisReady')}
+                      </Link>
+                    )}
+                    <Badge tone={statusTone(cv.parsingStatus)}>{statusLabel(cv.parsingStatus)}</Badge>
+                    <button
+                      onClick={() => onDelete(cv.id)}
+                      className="h-8 w-8 rounded-md hover:bg-red-500/10 text-subtle hover:text-red-500 flex items-center justify-center"
+                      aria-label="Delete"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

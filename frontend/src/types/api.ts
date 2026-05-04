@@ -1,4 +1,13 @@
-export type Role = 'CANDIDATE' | 'HR' | 'HIRING_MANAGER' | 'RECRUITER_AGENCY' | 'ADMIN';
+export type Role = 'CANDIDATE' | 'HR' | 'HIRING_MANAGER' | 'RECRUITER_AGENCY' | 'ADMIN' | 'SUPER_ADMIN';
+
+export interface Company {
+  id: number;
+  name: string;
+  industry: string | null;
+  subscriptionPlan: string | null;
+  website: string | null;
+  description: string | null;
+}
 export type PipelineStage = 'NEW' | 'REVIEWED' | 'SHORTLISTED' | 'INTERVIEW' | 'OFFER' | 'HIRED' | 'REJECTED';
 export type Recommendation = 'STRONG_MATCH' | 'POTENTIAL_MATCH' | 'WEAK_MATCH';
 export type CandidateLevel = 'JUNIOR' | 'MID' | 'SENIOR';

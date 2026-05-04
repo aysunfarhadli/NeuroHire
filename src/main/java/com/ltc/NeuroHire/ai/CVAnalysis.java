@@ -24,6 +24,7 @@ public class CVAnalysis extends BaseEntity {
 
     private Long jobId;
 
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private CandidateLevel candidateLevel;
@@ -73,6 +74,8 @@ public class CVAnalysis extends BaseEntity {
     @Column(name = "candidate_feedback", columnDefinition = "CLOB")
     private String candidateFeedback;
 
+
+
     @Lob
     @Column(name = "interview_questions_json", columnDefinition = "CLOB")
     private String interviewQuestionsJson;
@@ -84,4 +87,6 @@ public class CVAnalysis extends BaseEntity {
     @Lob
     @Column(name = "risk_flags_json", columnDefinition = "CLOB")
     private String riskFlagsJson;
+
+
 }

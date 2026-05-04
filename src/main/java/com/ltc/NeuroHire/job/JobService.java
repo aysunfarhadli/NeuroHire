@@ -4,16 +4,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ltc.NeuroHire.ai.AiService;
 import com.ltc.NeuroHire.ai.dto.JobAnalysisAi;
+import com.ltc.NeuroHire.common.event.HireMindEvent;
 import com.ltc.NeuroHire.common.exception.ApiException;
 import com.ltc.NeuroHire.job.dto.JobDto;
 import com.ltc.NeuroHire.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -25,6 +28,7 @@ public class JobService {
     private final JobAnalysisRepository analysisRepo;
     private final AiService aiService;
     private final ObjectMapper mapper;
+    private final ApplicationEventPublisher events;
 
     public JobDto.Response create(JobDto.CreateRequest req) {
         var principal = CurrentUser.get();
@@ -41,7 +45,14 @@ public class JobService {
                 .employmentType(req.employmentType())
                 .status("OPEN")
                 .build();
-        return toResponse(repo.save(p));
+        JobPost saved = repo.save(p);
+        events.publishEvent(HireMindEvent.of(HireMindEvent.JOB_CREATED, Map.of(
+                "jobId", saved.getId(),
+                "title", saved.getTitle(),
+                "companyId", saved.getCompanyId(),
+                "createdByUserId", saved.getCreatedByUserId()
+        )));
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -57,6 +68,25 @@ public class JobService {
     @Transactional(readOnly = true)
     public List<JobDto.Response> listPublic() {
         return repo.findByStatusOrderByCreatedAtDesc("OPEN").stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobDto.Response> searchPublic(String q, String location, String employmentType, String seniority) {
+        String keyword = q == null ? null : q.trim().toLowerCase();
+        String loc = location == null ? null : location.trim().toLowerCase();
+        String type = employmentType == null ? null : employmentType.trim().toUpperCase();
+        String level = seniority == null ? null : seniority.trim().toUpperCase();
+        return repo.findByStatusOrderByCreatedAtDesc("OPEN").stream()
+                .filter(p -> keyword == null || keyword.isEmpty()
+                        || (p.getTitle() != null && p.getTitle().toLowerCase().contains(keyword))
+                        || (p.getDescription() != null && p.getDescription().toLowerCase().contains(keyword)))
+                .filter(p -> loc == null || loc.isEmpty()
+                        || (p.getLocation() != null && p.getLocation().toLowerCase().contains(loc)))
+                .filter(p -> type == null || type.isEmpty()
+                        || (p.getEmploymentType() != null && p.getEmploymentType().equalsIgnoreCase(type)))
+                .filter(p -> level == null || level.isEmpty()
+                        || (p.getSeniority() != null && p.getSeniority().name().equalsIgnoreCase(level)))
+                .map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)

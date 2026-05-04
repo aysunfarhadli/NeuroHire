@@ -48,6 +48,22 @@ public class JobController {
         return ApiResponse.ok(service.listPublic());
     }
 
+    @Operation(summary = "Public filtered jobs search (no auth)")
+    @GetMapping("/public/search")
+    public ApiResponse<List<JobDto.Response>> publicSearch(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String employmentType,
+            @RequestParam(required = false) String seniority) {
+        return ApiResponse.ok(service.searchPublic(q, location, employmentType, seniority));
+    }
+
+    @Operation(summary = "Public job detail (no auth)")
+    @GetMapping("/public/{id}")
+    public ApiResponse<JobDto.Response> publicGet(@PathVariable Long id) {
+        return ApiResponse.ok(service.get(id));
+    }
+
     @Operation(summary = "Job detail")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")

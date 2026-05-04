@@ -11,14 +11,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SpaController {
 
-    @RequestMapping(value = {
+    @GetMapping(value = {
             "/",
             "/login",
             "/register",
             "/app",
-            "/app/**"
+            "/app/**",
+            "/jobs",
+            "/jobs/**",
+            "/companies",
+            "/companies/**",
+            "/superadmin",
+            "/superadmin/**"
     })
-    @GetMapping
     public org.springframework.web.servlet.ModelAndView spa() {
         return new org.springframework.web.servlet.ModelAndView("forward:/index.html");
     }

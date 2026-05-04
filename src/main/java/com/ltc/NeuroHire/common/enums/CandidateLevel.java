@@ -5,3 +5,5 @@ public enum CandidateLevel {
     MID,
     SENIOR
 }
+
+

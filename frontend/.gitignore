@@ -1,0 +1,11 @@
+node_modules
+dist
+.vite
+*.log
+# Stray emit artifacts — TS is for type-checking only, Vite handles transpile
+src/**/*.js
+src/**/*.js.map
+vite.config.js
+vite.config.d.ts
+tsconfig.tsbuildinfo
+*.tsbuildinfo

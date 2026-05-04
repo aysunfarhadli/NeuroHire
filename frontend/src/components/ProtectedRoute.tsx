@@ -1,10 +1,13 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/store/auth';
 import type { Role } from '@/types/api';
+import Forbidden from './Forbidden';
 
 export default function ProtectedRoute({ children, roles }: { children: ReactNode; roles?: Role[] }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -12,7 +15,12 @@ export default function ProtectedRoute({ children, roles }: { children: ReactNod
       </div>
     );
   }
-  if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/app" replace />;
+  if (!user) {
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?next=${next}`} replace />;
+  }
+  if (roles && !roles.includes(user.role)) {
+    return <Forbidden />;
+  }
   return <>{children}</>;
 }

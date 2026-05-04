@@ -7,6 +7,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
+  build: {
+    outDir: path.resolve(__dirname, '../src/main/resources/static'),
+    emptyOutDir: true,
+  },
   server: {
     port: 5173,
     proxy: {

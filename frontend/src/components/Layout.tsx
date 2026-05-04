@@ -10,31 +10,37 @@ import {
   LogOut,
   Sun,
   Moon,
+  Send,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/store/auth';
 import { useTheme } from '@/store/theme';
 import BrandMark from './BrandMark';
+import LanguageSwitcher from './LanguageSwitcher';
+import TourTrigger from './TourTrigger';
 
 export default function Layout() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const isCandidate = user?.role === 'CANDIDATE';
 
   const candidateNav = [
-    { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
-    { to: '/app/cv', icon: FileText, label: 'My CVs' },
-    { to: '/app/jobs', icon: Briefcase, label: 'Open jobs' },
-    { to: '/app/settings', icon: Settings, label: 'Settings' },
+    { to: '/app', icon: LayoutDashboard, label: t('common.dashboard'), end: true },
+    { to: '/app/cv', icon: FileText, label: t('cv.pageTitle') },
+    { to: '/app/applications', icon: Send, label: t('applications.title') },
+    { to: '/app/jobs', icon: Briefcase, label: t('common.jobs') },
+    { to: '/app/settings', icon: Settings, label: t('common.settings') },
   ];
 
   const hrNav = [
-    { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
-    { to: '/app/jobs', icon: Briefcase, label: 'Jobs' },
-    { to: '/app/candidates', icon: Users, label: 'Candidates' },
-    { to: '/app/pipeline', icon: KanbanSquare, label: 'Pipeline' },
-    { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },
-    { to: '/app/settings', icon: Settings, label: 'Settings' },
+    { to: '/app', icon: LayoutDashboard, label: t('common.dashboard'), end: true },
+    { to: '/app/jobs', icon: Briefcase, label: t('common.jobs') },
+    { to: '/app/candidates', icon: Users, label: t('common.candidates') },
+    { to: '/app/pipeline', icon: KanbanSquare, label: t('common.pipeline') },
+    { to: '/app/analytics', icon: BarChart3, label: t('common.analytics') },
+    { to: '/app/settings', icon: Settings, label: t('common.settings') },
   ];
 
   const nav = isCandidate ? candidateNav : hrNav;
@@ -82,7 +88,7 @@ export default function Layout() {
             className="mt-1 w-full flex items-center gap-2.5 px-3 h-9 rounded-lg text-sm text-subtle hover:text-fg hover:bg-fg/[0.04]"
           >
             <LogOut className="h-4 w-4" />
-            Sign out
+            {t('common.signOut')}
           </button>
         </div>
       </aside>
@@ -93,7 +99,9 @@ export default function Layout() {
             <span className="text-fg font-medium">{user?.role.replace('_', ' ')}</span>
             {user?.companyId && <span className="ml-2">· Company #{user.companyId}</span>}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <TourTrigger />
+            <LanguageSwitcher />
             <button
               onClick={toggle}
               className="h-9 w-9 rounded-lg flex items-center justify-center text-subtle hover:text-fg hover:bg-fg/[0.06]"
@@ -110,10 +118,31 @@ export default function Layout() {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-6 md:p-8 page-fade-in">
+        <main className="flex-1 p-6 md:p-8 pb-24 md:pb-8 page-fade-in">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80 px-2 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-stretch justify-around">
+          {nav.slice(0, 5).map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+                  isActive ? 'text-brand-600 dark:text-brand-300' : 'text-subtle hover:text-fg'
+                }`
+              }
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

@@ -11,6 +11,30 @@ export async function listPublicOpen() {
   return unwrap(data);
 }
 
+export interface PublicJobFilters {
+  q?: string;
+  location?: string;
+  employmentType?: string;
+  seniority?: string;
+}
+
+export async function searchPublicJobs(filters: PublicJobFilters) {
+  const params = new URLSearchParams();
+  if (filters.q) params.set('q', filters.q);
+  if (filters.location) params.set('location', filters.location);
+  if (filters.employmentType) params.set('employmentType', filters.employmentType);
+  if (filters.seniority) params.set('seniority', filters.seniority);
+  const qs = params.toString();
+  const url = `/api/jobs/public/search${qs ? `?${qs}` : ''}`;
+  const { data } = await http.get<ApiEnvelope<JobPost[]>>(url);
+  return unwrap(data);
+}
+
+export async function getPublicJob(id: number) {
+  const { data } = await http.get<ApiEnvelope<JobPost>>(`/api/jobs/public/${id}`);
+  return unwrap(data);
+}
+
 export async function getJob(id: number) {
   const { data } = await http.get<ApiEnvelope<JobPost>>(`/api/jobs/${id}`);
   return unwrap(data);

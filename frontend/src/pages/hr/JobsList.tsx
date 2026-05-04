@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, Plus, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, CardBody, EmptyState, Input, Skeleton } from '@/components/ui';
 import { listJobs } from '@/api/jobs';
 import type { JobPost } from '@/types/api';
 import { relativeTime } from '@/lib/format';
 
 export default function JobsList() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobPost[] | null>(null);
   const [q, setQ] = useState('');
 
@@ -20,15 +22,15 @@ export default function JobsList() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Jobs</h1>
-          <p className="text-sm text-subtle mt-1">All your job postings.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('hrJobs.title')}</h1>
+          <p className="text-sm text-subtle mt-1">{t('hrJobs.sub')}</p>
         </div>
-        <Link to="/app/jobs/new"><Button iconLeft={<Plus className="h-4 w-4" />}>New job</Button></Link>
+        <Link to="/app/jobs/new"><Button iconLeft={<Plus className="h-4 w-4" />}>{t('hrJobs.newBtn')}</Button></Link>
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-subtle" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search title or location..." className="pl-9" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('hrJobs.searchPlaceholder') ?? ''} className="pl-9" />
       </div>
 
       {jobs === null ? (
@@ -37,9 +39,9 @@ export default function JobsList() {
         </div>
       ) : filtered.length === 0 ? (
         <Card><CardBody>
-          <EmptyState icon={<Briefcase className="h-6 w-6" />} title={q ? 'No jobs match your search' : 'No jobs yet'}
-            description={q ? 'Try a different keyword.' : 'Create your first job posting to start screening candidates.'}
-            action={!q && <Link to="/app/jobs/new"><Button iconLeft={<Plus className="h-4 w-4" />}>Create job</Button></Link>}
+          <EmptyState icon={<Briefcase className="h-6 w-6" />} title={q ? t('hrJobs.noMatch') : t('hrJobs.noJobs')}
+            description={q ? t('hrJobs.noMatchSub') : t('hrJobs.noJobsSub')}
+            action={!q && <Link to="/app/jobs/new"><Button iconLeft={<Plus className="h-4 w-4" />}>{t('hrJobs.createBtn')}</Button></Link>}
           />
         </CardBody></Card>
       ) : (
@@ -58,7 +60,7 @@ export default function JobsList() {
                     {j.employmentType && <span>· {j.employmentType}</span>}
                   </div>
                   <p className="mt-3 text-sm text-fg/80 line-clamp-2">{j.description}</p>
-                  <div className="mt-3 text-xs text-subtle">Updated {relativeTime(j.updatedAt)}</div>
+                  <div className="mt-3 text-xs text-subtle">{t('hrJobs.updatedRel', { when: relativeTime(j.updatedAt) })}</div>
                 </CardBody>
               </Card>
             </Link>

@@ -47,17 +47,21 @@ public class SecurityConfig {
                 .authorizeHttpRequests(reg -> reg
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/", "/index.html", "/favicon.svg", "/assets/**",
+                                "/", "/index.html", "/favicon.svg", "/assets/**", "/vite.svg",
                                 "/login", "/register", "/app", "/app/**",
+                                "/jobs", "/jobs/**", "/companies", "/companies/**",
+                                "/superadmin", "/superadmin/**",
                                 "/api/auth/**",
                                 "/api/meta/**",
+                                "/api/ai/chat",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/h2-console/**",
                                 "/actuator/health"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/public/**", "/api/companies/public/**").permitAll()
+                        .requestMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

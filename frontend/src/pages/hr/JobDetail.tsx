@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Brain, Download, Sparkles, Trash2, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, CardBody, CardHeader, Skeleton, Toast } from '@/components/ui';
 import { analyzeJob, deleteJob, getJob, getJobAnalysis } from '@/api/jobs';
 import { ranking } from '@/api/match';
@@ -9,6 +10,7 @@ import { apiErrorMessage } from '@/api/client';
 import { formatDate } from '@/lib/format';
 
 export default function JobDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const jobId = Number(id);
   const [job, setJob] = useState<JobPost | null>(null);
@@ -29,13 +31,13 @@ export default function JobDetail() {
   }
 
   async function onDelete() {
-    if (!confirm('Delete this job? This cannot be undone.')) return;
+    if (!confirm(t('hrJobs.deleteConfirm'))) return;
     try { await deleteJob(jobId); window.location.href = '/app/jobs'; } catch (e) { setError(apiErrorMessage(e)); }
   }
 
   function downloadCsv() {
-    const t = localStorage.getItem('hm_access');
-    fetch(`/api/reports/jobs/${jobId}/csv`, { headers: { Authorization: `Bearer ${t}` } })
+    const tok = localStorage.getItem('hm_access');
+    fetch(`/api/reports/jobs/${jobId}/csv`, { headers: { Authorization: `Bearer ${tok}` } })
       .then((r) => r.blob())
       .then((b) => {
         const url = URL.createObjectURL(b);
@@ -50,27 +52,27 @@ export default function JobDetail() {
   return (
     <div className="space-y-6">
       <Link to="/app/jobs" className="inline-flex items-center gap-2 text-sm text-subtle hover:text-fg">
-        <ArrowLeft className="h-4 w-4" /> Back to jobs
+        <ArrowLeft className="h-4 w-4" /> {t('hrJobs.backToJobs')}
       </Link>
 
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-semibold">{job.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
             <Badge tone={job.status === 'OPEN' ? 'green' : 'gray'}>{job.status}</Badge>
             {job.seniority && <Badge tone="violet">{job.seniority}</Badge>}
           </div>
           <div className="mt-2 text-sm text-subtle">
             {job.location && <>{job.location} · </>}
-            {job.employmentType} · created {formatDate(job.createdAt)}
+            {job.employmentType} · {formatDate(job.createdAt)}
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button onClick={runAnalyze} loading={loading} iconLeft={<Sparkles className="h-4 w-4" />}>
-            {analysis ? 'Re-analyze' : 'Analyze with AI'}
+            {analysis ? t('hrJobs.reAnalyze') : t('hrJobs.analyzeAi')}
           </Button>
-          <Button onClick={downloadCsv} variant="outline" iconLeft={<Download className="h-4 w-4" />}>Export CSV</Button>
-          <Button onClick={onDelete} variant="ghost" iconLeft={<Trash2 className="h-4 w-4" />}>Delete</Button>
+          <Button onClick={downloadCsv} variant="outline" iconLeft={<Download className="h-4 w-4" />}>{t('hrJobs.exportCsv')}</Button>
+          <Button onClick={onDelete} variant="ghost" iconLeft={<Trash2 className="h-4 w-4" />}>{t('hrJobs.delete')}</Button>
         </div>
       </div>
 
@@ -78,17 +80,17 @@ export default function JobDetail() {
 
       {analysis && (
         <Card>
-          <CardHeader title="AI job analysis" subtitle="Extracted by HireMind AI" />
+          <CardHeader title={t('hrJobs.aiAnalysisTitle')} subtitle={t('hrJobs.aiAnalysisSub')} />
           <CardBody className="space-y-5">
             <div className="grid md:grid-cols-3 gap-4 text-sm">
-              <Meta label="Domain" value={analysis.domain} />
-              <Meta label="Seniority" value={analysis.seniority} />
-              <Meta label="Min years" value={analysis.minYearsExperience} />
+              <Meta label={t('hrJobs.metaDomain')} value={analysis.domain} />
+              <Meta label={t('hrJobs.metaSeniority')} value={analysis.seniority} />
+              <Meta label={t('hrJobs.metaMinYears')} value={analysis.minYearsExperience} />
             </div>
-            <SkillsBlock title="Must-have skills" tone="red" items={analysis.mustHaveSkills} />
-            <SkillsBlock title="Nice-to-have skills" tone="amber" items={analysis.niceToHaveSkills} />
+            <SkillsBlock title={t('hrJobs.mustHave')} tone="red" items={analysis.mustHaveSkills} />
+            <SkillsBlock title={t('hrJobs.niceToHave')} tone="amber" items={analysis.niceToHaveSkills} />
             <div>
-              <div className="text-xs uppercase tracking-wider text-subtle mb-2">Responsibilities</div>
+              <div className="text-xs uppercase tracking-wider text-subtle mb-2">{t('hrJobs.responsibilities')}</div>
               <ul className="space-y-1 text-sm">
                 {analysis.responsibilities.map((r, i) => (
                   <li key={i} className="flex gap-2"><span className="text-brand-500">•</span>{r}</li>
@@ -101,24 +103,25 @@ export default function JobDetail() {
 
       <Card>
         <CardHeader
-          title="Candidate ranking"
-          subtitle={`${rows.length} candidate${rows.length === 1 ? '' : 's'} matched, sorted by total score`}
-          action={<Link to={`/app/candidates`}><Button size="sm" variant="outline" iconLeft={<Users className="h-4 w-4" />}>Add candidates</Button></Link>}
+          title={t('hrJobs.rankingTitle')}
+          subtitle={t('hrJobs.rankingSub', { count: rows.length })}
+          action={<Link to={`/app/candidates`}><Button size="sm" variant="outline" iconLeft={<Users className="h-4 w-4" />}>{t('hrJobs.addCandidates')}</Button></Link>}
         />
         <CardBody className="p-0">
           {rows.length === 0 ? (
             <div className="px-5 py-10 text-center text-sm text-subtle">
-              No matches yet. Go to <Link to="/app/candidates" className="text-brand-600 dark:text-brand-400 font-medium">Candidates</Link> to match CVs against this job.
+              {t('hrJobs.rankingEmpty', { candidates: '' })}
+              <Link to="/app/candidates" className="text-brand-600 dark:text-brand-400 font-medium">{t('common.candidates')}</Link>.
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-subtle border-b border-border">
-                  <th className="px-5 py-3">#</th>
-                  <th className="px-5 py-3">Candidate</th>
-                  <th className="px-5 py-3">CV</th>
-                  <th className="px-5 py-3">Score</th>
-                  <th className="px-5 py-3">Recommendation</th>
+                  <th className="px-5 py-3">{t('hrJobs.colNum')}</th>
+                  <th className="px-5 py-3">{t('hrJobs.colCandidate')}</th>
+                  <th className="px-5 py-3">{t('hrJobs.colCv')}</th>
+                  <th className="px-5 py-3">{t('hrJobs.colScore')}</th>
+                  <th className="px-5 py-3">{t('hrJobs.colRecommendation')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,7 +152,7 @@ export default function JobDetail() {
       </Card>
 
       <Card>
-        <CardHeader title="Description" />
+        <CardHeader title={t('hrJobs.descriptionTitle')} />
         <CardBody><pre className="whitespace-pre-wrap text-sm text-fg/90 font-sans leading-relaxed">{job.description}</pre></CardBody>
       </Card>
     </div>

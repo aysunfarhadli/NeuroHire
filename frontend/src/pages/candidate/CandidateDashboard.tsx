@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, Sparkles, Upload } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Skeleton, StatTile } from '@/components/ui';
 import { myCvs } from '@/api/cv';
 import { listPublicOpen } from '@/api/jobs';
@@ -8,6 +9,7 @@ import type { CvSummary, JobPost } from '@/types/api';
 import { relativeTime, formatBytes } from '@/lib/format';
 
 export default function CandidateDashboard() {
+  const { t } = useTranslation();
   const [cvs, setCvs] = useState<CvSummary[] | null>(null);
   const [jobs, setJobs] = useState<JobPost[] | null>(null);
 
@@ -21,15 +23,15 @@ export default function CandidateDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="text-sm text-subtle mt-1">Here's a snapshot of your CVs and open opportunities.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('dashboard.candidateTitle')}</h1>
+        <p className="text-sm text-subtle mt-1">{t('dashboard.candidateSub')}</p>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4">
-        <StatTile label="My CVs" value={cvs?.length ?? '—'} accent="brand" />
-        <StatTile label="Open jobs" value={jobs?.length ?? '—'} accent="green" />
+        <StatTile label={t('dashboard.myCvs')} value={cvs?.length ?? '—'} accent="brand" />
+        <StatTile label={t('dashboard.openJobs')} value={jobs?.length ?? '—'} accent="green" />
         <StatTile
-          label="Last upload"
+          label={t('dashboard.lastUpload')}
           value={lastCv ? relativeTime(lastCv.createdAt) : '—'}
           hint={lastCv?.fileName}
           accent="amber"
@@ -39,11 +41,11 @@ export default function CandidateDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader
-            title="My CVs"
-            subtitle="Recent uploads — click to view AI analysis"
+            title={t('dashboard.myCvs')}
+            subtitle={t('dashboard.recentUploads')}
             action={
               <Link to="/app/cv">
-                <Button size="sm" iconLeft={<Upload className="h-4 w-4" />}>Upload CV</Button>
+                <Button size="sm" iconLeft={<Upload className="h-4 w-4" />}>{t('dashboard.uploadCv')}</Button>
               </Link>
             }
           />
@@ -56,9 +58,9 @@ export default function CandidateDashboard() {
             ) : cvs.length === 0 ? (
               <EmptyState
                 icon={<FileText className="h-6 w-6" />}
-                title="No CVs yet"
-                description="Upload a PDF or DOCX to get instant AI analysis."
-                action={<Link to="/app/cv"><Button iconLeft={<Upload className="h-4 w-4" />}>Upload CV</Button></Link>}
+                title={t('cv.noCvsTitle')}
+                description={t('cv.noCvsBody')}
+                action={<Link to="/app/cv"><Button iconLeft={<Upload className="h-4 w-4" />}>{t('dashboard.uploadCv')}</Button></Link>}
               />
             ) : (
               <ul className="divide-y divide-border">
@@ -86,7 +88,7 @@ export default function CandidateDashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Open positions" subtitle="Roles you can apply to" />
+          <CardHeader title={t('dashboard.openPositions')} subtitle={t('dashboard.applyToRoles')} />
           <CardBody className="p-0">
             {jobs === null ? (
               <div className="p-5 space-y-3">
@@ -94,7 +96,7 @@ export default function CandidateDashboard() {
                 <Skeleton className="h-10" />
               </div>
             ) : jobs.length === 0 ? (
-              <EmptyState icon={<Sparkles className="h-6 w-6" />} title="No open jobs" description="Check back soon." />
+              <EmptyState icon={<Sparkles className="h-6 w-6" />} title={t('dashboard.noOpenJobs')} description={t('dashboard.checkBack')} />
             ) : (
               <ul className="divide-y divide-border">
                 {jobs.slice(0, 5).map((j) => (
@@ -121,10 +123,11 @@ export default function CandidateDashboard() {
 }
 
 function ParsingBadge({ status }: { status: CvSummary['parsingStatus'] }) {
+  const { t } = useTranslation();
   switch (status) {
-    case 'DONE': return <Badge tone="green">Parsed</Badge>;
-    case 'PROCESSING': return <Badge tone="blue">Processing</Badge>;
-    case 'PENDING': return <Badge tone="amber">Pending</Badge>;
-    case 'FAILED': return <Badge tone="red">Failed</Badge>;
+    case 'DONE': return <Badge tone="green">{t('cv.parsed')}</Badge>;
+    case 'PROCESSING': return <Badge tone="blue">{t('cv.processing')}</Badge>;
+    case 'PENDING': return <Badge tone="amber">{t('cv.pending')}</Badge>;
+    case 'FAILED': return <Badge tone="red">{t('cv.failed')}</Badge>;
   }
 }

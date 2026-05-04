@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, CardBody, CardHeader, EmptyState, Skeleton, Toast } from '@/components/ui';
+import { Card, CardBody, EmptyState, Skeleton, Toast } from '@/components/ui';
 import { KanbanSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listJobs } from '@/api/jobs';
 import { listForJob, setStage } from '@/api/pipeline';
 import type { JobPost, PipelineEntry, PipelineStage } from '@/types/api';
@@ -18,6 +19,7 @@ const STAGE_TONES: Record<PipelineStage, string> = {
 };
 
 export default function Pipeline() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [selectedJob, setSelectedJob] = useState<number | null>(null);
   const [entries, setEntries] = useState<PipelineEntry[] | null>(null);
@@ -55,15 +57,15 @@ export default function Pipeline() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold">Pipeline</h1>
-          <p className="text-sm text-subtle mt-1">Drag candidates between stages to update their status.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('hrPipeline.title')}</h1>
+          <p className="text-sm text-subtle mt-1">{t('hrPipeline.sub')}</p>
         </div>
         <select
           className="h-10 px-3 rounded-lg bg-surface border border-border text-fg text-sm"
           value={selectedJob ?? ''}
           onChange={(e) => setSelectedJob(Number(e.target.value))}
         >
-          <option value="">Select a job...</option>
+          <option value="">{t('hrPipeline.selectJob')}</option>
           {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
         </select>
       </div>
@@ -72,7 +74,7 @@ export default function Pipeline() {
 
       {!selectedJob ? (
         <Card><CardBody>
-          <EmptyState icon={<KanbanSquare className="h-6 w-6" />} title="Pick a job" description="Choose one of your jobs to see its pipeline." />
+          <EmptyState icon={<KanbanSquare className="h-6 w-6" />} title={t('hrPipeline.pickJob')} description={t('hrPipeline.pickJobSub')} />
         </CardBody></Card>
       ) : entries === null ? (
         <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
@@ -94,7 +96,7 @@ export default function Pipeline() {
                   <span className="text-xs text-subtle">{cards.length}</span>
                 </div>
                 <div className="space-y-2">
-                  {cards.length === 0 && <div className="text-xs text-subtle/60 italic px-1 py-2">Drop here</div>}
+                  {cards.length === 0 && <div className="text-xs text-subtle/60 italic px-1 py-2">{t('hrPipeline.dropHere')}</div>}
                   {cards.map((c) => (
                     <div
                       key={c.id}
@@ -102,7 +104,7 @@ export default function Pipeline() {
                       onDragStart={(e) => onDragStart(e, c.id)}
                       className="rounded-lg border border-border bg-bg p-2.5 text-sm cursor-grab active:cursor-grabbing hover:border-brand-500/50"
                     >
-                      <div className="font-medium">Candidate #{c.candidateUserId}</div>
+                      <div className="font-medium">{t('hrPipeline.candidate', { id: c.candidateUserId })}</div>
                       {c.hrComment && <div className="text-xs text-subtle mt-1 line-clamp-2">{c.hrComment}</div>}
                     </div>
                   ))}
