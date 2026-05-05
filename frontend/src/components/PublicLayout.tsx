@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sun, Moon, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,20 @@ export default function PublicLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    setScrolled(false);
+    function onScroll() { setScrolled(window.scrollY > 16); }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [location.pathname]);
+
+  // On home: transparent over the hero, frosted after scroll. Off-home: always frosted.
+  const headerSurface = !isHome || scrolled
+    ? 'glass border-b border-border shadow-[0_8px_30px_-12px_rgba(0,0,0,0.25)]'
+    : 'bg-transparent border-b border-transparent';
 
   const navLinkCls = ({ isActive }: { isActive: boolean }) =>
     `text-sm h-9 px-3 rounded-lg flex items-center transition-colors ${
@@ -23,7 +38,7 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-bg text-fg">
-      <header className="sticky top-0 z-30 glass border-b border-border">
+      <header className={`sticky top-0 z-30 transition-all duration-300 ${headerSurface}`}>
         <div className="max-w-7xl mx-auto h-16 px-6 flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <BrandMark size={32} />

@@ -59,6 +59,8 @@ export default {
     ctaTitle2: 'screen smarter?',
     ctaSub: 'Spin up the demo, log in as HR, Candidate, or Super Admin, upload a CV, and watch HireMind AI do its thing.',
     demoCreds: 'Demo accounts',
+    trustedByTitle: 'Hiring teams already using HireMind',
+    trustedBySub: 'Real companies. Real candidates. Real outcomes.',
     howItWorksTitle: 'From CV to hire — in three honest steps.',
     howItWorksSub: 'No black box. Every score has a reason your team can read.',
     step1Title: 'Upload or browse',

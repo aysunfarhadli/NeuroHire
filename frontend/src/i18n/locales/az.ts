@@ -59,6 +59,8 @@ export default {
     ctaTitle2: 'seçim etməyə hazırsan?',
     ctaSub: 'Demo-nu işə sal, HR, Namizəd və ya Super Admin kimi daxil ol, CV yüklə və HireMind AI-nin işini gör.',
     demoCreds: 'Demo hesablar',
+    trustedByTitle: 'HireMind-dan istifadə edən komandalar',
+    trustedBySub: 'Real şirkətlər. Real namizədlər. Real nəticələr.',
     howItWorksTitle: 'CV-dən işə qəbula — üç dürüst addımda.',
     howItWorksSub: 'Heç bir qara qutu yoxdur. Hər qiymətin komandanın oxuya biləcəyi səbəbi var.',
     step1Title: 'Yüklə və ya bax',

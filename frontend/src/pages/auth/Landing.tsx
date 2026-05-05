@@ -1,4 +1,5 @@
 import Hero from './landing/sections/Hero';
+import TrustedBy from './landing/sections/TrustedBy';
 import LiveDemo from './landing/sections/LiveDemo';
 import HowItWorks from './landing/sections/HowItWorks';
 import Stats from './landing/sections/Stats';
@@ -12,6 +13,7 @@ export default function Landing() {
   return (
     <>
       <Hero />
+      <TrustedBy />
       <LiveDemo />
       <HowItWorks />
       <Stats />
