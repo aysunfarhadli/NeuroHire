@@ -2,12 +2,18 @@ package com.ltc.NeuroHire.ai;
 
 import com.ltc.NeuroHire.ai.dto.ChatDto;
 import com.ltc.NeuroHire.ai.dto.CvAnalysisAi;
+import com.ltc.NeuroHire.auth.UserRepository;
 import com.ltc.NeuroHire.common.api.ApiResponse;
+import com.ltc.NeuroHire.common.exception.ApiException;
+import com.ltc.NeuroHire.cv.CVDocument;
+import com.ltc.NeuroHire.cv.CvService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "AI", description = "AI-driven CV analysis (structured JSON per spec §12)")
@@ -19,6 +25,9 @@ public class AiController {
     private final AiAnalysisService analysisService;
     private final AiChatService chatService;
     private final CoverLetterService coverLetterService;
+    private final CvReportPdfService pdfService;
+    private final CvService cvService;
+    private final UserRepository userRepository;
 
     @Operation(summary = "Analyze a CV (optionally against a specific job) and return structured AI output")
     @SecurityRequirement(name = "bearerAuth")
@@ -46,5 +55,21 @@ public class AiController {
     @PostMapping("/cover-letter")
     public ApiResponse<ChatDto.CoverLetter> coverLetter(@Valid @RequestBody ChatDto.CoverLetterRequest req) {
         return ApiResponse.ok(coverLetterService.generate(req), "Cover letter generated");
+    }
+
+    @Operation(summary = "Download the AI CV analysis as a branded PDF report")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping(value = "/cv/{cvId}/report.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> downloadReport(@PathVariable Long cvId) {
+        CVDocument cv = cvService.requireDocument(cvId);
+        CvAnalysisAi analysis = analysisService.latestForCv(cvId);
+        var candidate = userRepository.findById(cv.getCandidateUserId())
+                .orElseThrow(() -> ApiException.notFound("Candidate not found"));
+        byte[] pdf = pdfService.generate(cv, analysis, candidate);
+        String filename = "cv-analysis-" + cvId + ".pdf";
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                .header("Content-Type", MediaType.APPLICATION_PDF_VALUE)
+                .body(pdf);
     }
 }

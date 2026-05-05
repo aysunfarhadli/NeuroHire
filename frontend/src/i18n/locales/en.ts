@@ -408,6 +408,8 @@ export default {
     interviewWhy: 'Why: {{reason}}',
     riskTitle: 'Risk flags',
     riskSub: 'Manual review recommended',
+    downloadPdf: 'Download PDF',
+    downloadingPdf: 'Preparing…',
   },
   notifications: {
     title: 'Notifications',

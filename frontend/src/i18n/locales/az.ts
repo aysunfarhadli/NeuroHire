@@ -408,6 +408,8 @@ export default {
     interviewWhy: 'Niyə: {{reason}}',
     riskTitle: 'Risk işarələri',
     riskSub: 'Əl ilə yoxlamaq tövsiyə olunur',
+    downloadPdf: 'PDF endir',
+    downloadingPdf: 'Hazırlanır…',
   },
   notifications: {
     title: 'Bildirişlər',

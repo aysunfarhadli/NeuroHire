@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, FileText, RefreshCw, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, FileText, RefreshCw, Sparkles, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, CardBody, CardHeader, ScoreRing, Skeleton, Toast } from '@/components/ui';
-import { getCv } from '@/api/cv';
+import { getCv, downloadCvReport } from '@/api/cv';
 import { analyzeCv, latestCvAnalysis } from '@/api/ai';
 import { listJobs } from '@/api/jobs';
 import type { CvAnalysisAi, CvDetail, JobPost, Recommendation } from '@/types/api';
@@ -25,6 +25,7 @@ export default function CvDetailPage() {
   const [jobs, setJobs] = useState<JobPost[]>([]);
   const [selectedJob, setSelectedJob] = useState<number | ''>('');
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +44,19 @@ export default function CvDetailPage() {
       setError(apiErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function downloadPdf() {
+    if (!cv) return;
+    setDownloading(true);
+    setError(null);
+    try {
+      await downloadCvReport(cvId, `${cv.fileName.replace(/\.[^.]+$/, '')}-analysis.pdf`);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -86,6 +100,11 @@ export default function CvDetailPage() {
           <Button onClick={runAnalysis} loading={loading} iconLeft={<Sparkles className="h-4 w-4" />}>
             {analysis ? t('cvAnalysis.reAnalyze') : t('cvAnalysis.analyzeAi')}
           </Button>
+          {analysis && (
+            <Button variant="outline" onClick={downloadPdf} loading={downloading} iconLeft={<Download className="h-4 w-4" />}>
+              {downloading ? t('cvAnalysis.downloadingPdf') : t('cvAnalysis.downloadPdf')}
+            </Button>
+          )}
         </div>
       </div>
 

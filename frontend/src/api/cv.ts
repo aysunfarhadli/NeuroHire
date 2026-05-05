@@ -30,3 +30,18 @@ export async function getCv(id: number) {
 export async function deleteCv(id: number) {
   await http.delete(`/api/cv/${id}`);
 }
+
+export async function downloadCvReport(id: number, fileName: string = `cv-analysis-${id}.pdf`) {
+  const { data } = await http.get<Blob>(`/api/ai/cv/${id}/report.pdf`, {
+    responseType: 'blob',
+    headers: { Accept: 'application/pdf' },
+  });
+  const url = URL.createObjectURL(data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

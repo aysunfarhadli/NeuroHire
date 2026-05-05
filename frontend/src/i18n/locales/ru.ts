@@ -414,6 +414,8 @@ export default {
     interviewWhy: 'Почему: {{reason}}',
     riskTitle: 'Риски',
     riskSub: 'Рекомендуется ручная проверка',
+    downloadPdf: 'Скачать PDF',
+    downloadingPdf: 'Готовлю…',
   },
   notifications: {
     title: 'Уведомления',
