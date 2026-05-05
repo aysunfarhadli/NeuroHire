@@ -409,6 +409,16 @@ export default {
     riskTitle: 'Risk işarələri',
     riskSub: 'Əl ilə yoxlamaq tövsiyə olunur',
   },
+  notifications: {
+    title: 'Bildirişlər',
+    empty: 'Hər şeyi oxumusan.',
+    markAll: 'Hamısını oxunmuş et',
+    open: 'Aç',
+    seeAll: 'Hamısına bax',
+    typeApplicationReceived: 'Yeni müraciət',
+    typeApplicationStage: 'Müraciət yeniliyi',
+    typeGeneric: 'Bildiriş',
+  },
   applications: {
     title: 'Mənim müraciətlərim',
     sub: 'Müraciət etdiyin vakansiyalar və onların pipeline-da yeri.',

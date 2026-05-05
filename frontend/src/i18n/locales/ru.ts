@@ -415,6 +415,16 @@ export default {
     riskTitle: 'Риски',
     riskSub: 'Рекомендуется ручная проверка',
   },
+  notifications: {
+    title: 'Уведомления',
+    empty: 'Ты всё прочитал.',
+    markAll: 'Отметить все прочитанными',
+    open: 'Открыть',
+    seeAll: 'Все уведомления',
+    typeApplicationReceived: 'Новый отклик',
+    typeApplicationStage: 'Обновление отклика',
+    typeGeneric: 'Уведомление',
+  },
   applications: {
     title: 'Мои отклики',
     sub: 'Вакансии, на которые ты откликнулся, и где они в воронке.',
