@@ -409,6 +409,16 @@ export default {
     riskTitle: 'Risk flags',
     riskSub: 'Manual review recommended',
   },
+  notifications: {
+    title: 'Notifications',
+    empty: "You're all caught up.",
+    markAll: 'Mark all as read',
+    open: 'Open',
+    seeAll: 'See all',
+    typeApplicationReceived: 'New application',
+    typeApplicationStage: 'Application update',
+    typeGeneric: 'Notification',
+  },
   applications: {
     title: 'My applications',
     sub: 'Roles you applied to and where they are in the pipeline.',

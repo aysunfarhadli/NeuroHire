@@ -1,6 +1,10 @@
 package com.ltc.NeuroHire.pipeline;
 
+import com.ltc.NeuroHire.common.enums.PipelineStageType;
 import com.ltc.NeuroHire.common.exception.ApiException;
+import com.ltc.NeuroHire.job.JobPost;
+import com.ltc.NeuroHire.job.JobPostRepository;
+import com.ltc.NeuroHire.notification.NotificationService;
 import com.ltc.NeuroHire.pipeline.dto.PipelineDto;
 import com.ltc.NeuroHire.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +19,8 @@ import java.util.List;
 public class PipelineService {
 
     private final PipelineEntryRepository repo;
+    private final JobPostRepository jobRepo;
+    private final NotificationService notifications;
 
     public PipelineDto.Response upsertStage(PipelineDto.StageUpdateRequest req) {
         PipelineEntry e = repo.findByJobIdAndCandidateUserId(req.jobId(), req.candidateUserId())
@@ -22,10 +28,23 @@ public class PipelineService {
                         .jobId(req.jobId())
                         .candidateUserId(req.candidateUserId())
                         .build());
+        PipelineStageType prevStage = e.getStage();
         e.setStage(req.stage());
         e.setHrComment(req.hrComment());
         e.setUpdatedByUserId(CurrentUser.get().userId());
         e = repo.save(e);
+
+        // Notify the candidate when the stage actually changes (skip first-time NEW assignment).
+        if (prevStage != null && prevStage != req.stage()) {
+            String jobTitle = jobRepo.findById(req.jobId()).map(JobPost::getTitle).orElse("a role");
+            notifications.push(
+                    req.candidateUserId(),
+                    "APPLICATION_STAGE_CHANGED",
+                    "Status update on " + jobTitle,
+                    "Your application moved from " + prevStage.name() + " to " + req.stage().name() + ".",
+                    "/app/applications"
+            );
+        }
         return toResponse(e);
     }
 

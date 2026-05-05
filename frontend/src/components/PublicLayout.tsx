@@ -4,6 +4,7 @@ import { Sun, Moon, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BrandMark from './BrandMark';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
 import TourTrigger from './TourTrigger';
 import { Button } from './ui';
 import { useTheme } from '@/store/theme';
@@ -52,6 +53,7 @@ export default function PublicLayout() {
             <NavLink to="/companies" className={navLinkCls}>{t('common.companies')}</NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
+            <NotificationBell />
             <TourTrigger autoOpen={isHome} />
             <LanguageSwitcher />
             <button

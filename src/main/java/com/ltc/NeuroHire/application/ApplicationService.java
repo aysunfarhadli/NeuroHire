@@ -9,6 +9,7 @@ import com.ltc.NeuroHire.company.CompanyRepository;
 import com.ltc.NeuroHire.cv.CVDocumentRepository;
 import com.ltc.NeuroHire.job.JobPost;
 import com.ltc.NeuroHire.job.JobPostRepository;
+import com.ltc.NeuroHire.notification.NotificationService;
 import com.ltc.NeuroHire.pipeline.PipelineEntry;
 import com.ltc.NeuroHire.pipeline.PipelineEntryRepository;
 import com.ltc.NeuroHire.security.AuthPrincipal;
@@ -34,6 +35,7 @@ public class ApplicationService {
     private final CompanyRepository companyRepo;
     private final CVDocumentRepository cvRepo;
     private final PipelineEntryRepository pipelineRepo;
+    private final NotificationService notifications;
     private final ApplicationEventPublisher events;
 
     public ApplicationDto.Response apply(ApplicationDto.CreateRequest req) {
@@ -85,6 +87,17 @@ public class ApplicationService {
                 "jobId", job.getId(),
                 "cvId", cvId == null ? "" : cvId
         )));
+
+        // Notify the recruiter who posted this job (the candidate sees their own action).
+        if (job.getCreatedByUserId() != null) {
+            notifications.push(
+                    job.getCreatedByUserId(),
+                    "APPLICATION_RECEIVED",
+                    "New applicant on " + job.getTitle(),
+                    "A candidate just applied. Open the pipeline to review.",
+                    "/app/pipeline"
+            );
+        }
 
         log.info("Candidate {} applied to job {} (cvId={})", me.userId(), job.getId(), cvId);
         return toResponse(app);

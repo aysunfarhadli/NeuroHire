@@ -17,6 +17,7 @@ import { useAuth } from '@/store/auth';
 import { useTheme } from '@/store/theme';
 import BrandMark from './BrandMark';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
 import TourTrigger from './TourTrigger';
 
 export default function Layout() {
@@ -100,6 +101,7 @@ export default function Layout() {
             {user?.companyId && <span className="ml-2">· Company #{user.companyId}</span>}
           </div>
           <div className="flex items-center gap-1.5">
+            <NotificationBell />
             <TourTrigger />
             <LanguageSwitcher />
             <button
