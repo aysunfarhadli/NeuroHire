@@ -17,4 +17,11 @@ public class ChatDto {
     ) {}
 
     public record Reply(String reply, List<String> suggestedActions) {}
+
+    public record CoverLetterRequest(
+            @jakarta.validation.constraints.NotNull Long jobId,
+            Long cvId
+    ) {}
+
+    public record CoverLetter(String coverLetter, String mode) {}
 }

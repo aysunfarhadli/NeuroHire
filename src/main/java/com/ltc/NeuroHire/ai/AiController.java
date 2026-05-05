@@ -18,6 +18,7 @@ public class AiController {
 
     private final AiAnalysisService analysisService;
     private final AiChatService chatService;
+    private final CoverLetterService coverLetterService;
 
     @Operation(summary = "Analyze a CV (optionally against a specific job) and return structured AI output")
     @SecurityRequirement(name = "bearerAuth")
@@ -38,5 +39,12 @@ public class AiController {
     @PostMapping("/chat")
     public ApiResponse<ChatDto.Reply> chat(@Valid @RequestBody ChatDto.Request req) {
         return ApiResponse.ok(chatService.chat(req));
+    }
+
+    @Operation(summary = "Generate a tailored cover letter for a job using the candidate's CV")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/cover-letter")
+    public ApiResponse<ChatDto.CoverLetter> coverLetter(@Valid @RequestBody ChatDto.CoverLetterRequest req) {
+        return ApiResponse.ok(coverLetterService.generate(req), "Cover letter generated");
     }
 }

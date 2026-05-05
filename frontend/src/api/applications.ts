@@ -44,3 +44,13 @@ export async function listApplicationsForJob(jobId: number) {
 export async function withdrawApplication(id: number) {
   await http.delete(`/api/applications/${id}`);
 }
+
+export interface CoverLetterReply {
+  coverLetter: string;
+  mode: 'openai' | 'template';
+}
+
+export async function generateCoverLetter(input: { jobId: number; cvId?: number }) {
+  const { data } = await http.post<ApiEnvelope<CoverLetterReply>>('/api/ai/cover-letter', input);
+  return unwrap(data);
+}

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Briefcase, Building2, ExternalLink, Sparkles, CheckCircle2, FileWarning } from 'lucide-react';
+import { ArrowLeft, MapPin, Briefcase, Building2, ExternalLink, Sparkles, CheckCircle2, FileWarning, Wand2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Badge, Skeleton, Toast, Textarea } from '@/components/ui';
 import { getPublicJob } from '@/api/jobs';
 import { getPublicCompany } from '@/api/companies';
-import { applyToJob, hasApplied } from '@/api/applications';
+import { applyToJob, hasApplied, generateCoverLetter } from '@/api/applications';
 import { myCvs } from '@/api/cv';
 import { apiErrorMessage } from '@/api/client';
 import { useAuth } from '@/store/auth';
@@ -26,6 +26,8 @@ export default function JobPublicDetail() {
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatorMode, setGeneratorMode] = useState<'openai' | 'template' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -102,6 +104,21 @@ export default function JobPublicDetail() {
     }
   };
 
+  const aiGenerate = async () => {
+    if (!job) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      const r = await generateCoverLetter({ jobId: job.id });
+      setCoverLetter(r.coverLetter);
+      setGeneratorMode(r.mode);
+    } catch (e) {
+      setError(apiErrorMessage(e));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const renderCta = () => {
     if (success || alreadyApplied) {
       return (
@@ -158,13 +175,34 @@ export default function JobPublicDetail() {
 
         {showApplyForm && (
           <div className="mt-6 p-5 rounded-xl border border-border bg-bg/40 space-y-4 animate-fade-in-up">
-            <Textarea
-              label={t('applications.coverLetter')}
-              placeholder={t('applications.coverLetterPlaceholder') ?? ''}
-              rows={5}
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-            />
+            <div>
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <label className="text-sm font-medium text-fg">{t('applications.coverLetter')}</label>
+                <button
+                  type="button"
+                  onClick={aiGenerate}
+                  disabled={generating || submitting}
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-brand-700 dark:text-brand-300 bg-brand-500/10 hover:bg-brand-500/20 ring-1 ring-brand-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {generating
+                    ? <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    : <Wand2 className="h-3.5 w-3.5" />}
+                  {generating ? t('applications.generating') : t('applications.generateAi')}
+                </button>
+              </div>
+              <Textarea
+                placeholder={t('applications.coverLetterPlaceholder') ?? ''}
+                rows={8}
+                value={coverLetter}
+                onChange={(e) => { setCoverLetter(e.target.value); setGeneratorMode(null); }}
+              />
+              {generatorMode && (
+                <div className="mt-2 text-xs text-subtle inline-flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3 text-brand-500" />
+                  {generatorMode === 'openai' ? t('applications.aiTagline') : t('applications.aiFallbackHint')}
+                </div>
+              )}
+            </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowApplyForm(false)} disabled={submitting}>
                 {t('applications.cancel')}

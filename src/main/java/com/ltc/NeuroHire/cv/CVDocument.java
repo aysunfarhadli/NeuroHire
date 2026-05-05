@@ -44,3 +44,4 @@ public class CVDocument extends BaseEntity {
     @Column(length = 500)
     private String parsingError;
 }
+
