@@ -53,8 +53,6 @@ export default function NotificationBell() {
     listNotifications(15).then(setItems).catch(() => setItems([]));
   }, [open, user]);
 
-  if (!user) return null;
-
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -62,6 +60,8 @@ export default function NotificationBell() {
     if (open) document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [open]);
+
+  if (!user) return null;
 
   async function onItemClick(n: NotificationItem) {
     setOpen(false);

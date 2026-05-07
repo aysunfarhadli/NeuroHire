@@ -33,8 +33,11 @@ http.interceptors.response.use(
   (err: AxiosError<ApiEnvelope<unknown>>) => {
     if (err.response?.status === 401) {
       tokenStore.clear();
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      const path = window.location.pathname;
+      const isAuthCall = err.config?.url?.includes('/api/auth/');
+      if (!path.startsWith('/login') && !isAuthCall) {
+        const next = encodeURIComponent(path + window.location.search);
+        window.location.href = `/login?next=${next}`;
       }
     }
     return Promise.reject(err);
